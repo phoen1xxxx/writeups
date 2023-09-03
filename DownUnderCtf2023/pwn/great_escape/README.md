@@ -1,7 +1,9 @@
 ###In this task we have a possibility to execute a shellcode, using just three syscalls: openat, read and nanosleep. Path to flag is also known. So the main idea to solve this to open flag, read it to the buffer and then try to compare byte of flag with harcoded value in shellcode in cycle. If flag byte and out byte are equals we jump into endless loop, else we get segfault and end iteration.
 
 
-```seccomp-tools dump ./jail'''
+```
+seccomp-tools dump ./jail
+```
 
 ```
  0000: 0x20 0x00 0x00 0x00000004  A = arch
