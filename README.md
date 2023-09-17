@@ -1,2 +1,2 @@
 # Ctf Writeups
-In this repository there are some writeups for ctf which I have participated are stored. 
+In this repository there are some writeups for ctf tasks I condider most interesting are stored. 
